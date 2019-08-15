@@ -1,11 +1,10 @@
 package com.movierental;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Customer {
   private String name;
-  private List<Rental> rentals = new ArrayList<>();
+  private Rentals rentals = new Rentals();
 
   public Customer(String name) {
     this.name = name;
@@ -20,45 +19,40 @@ public class Customer {
   }
 
   public String statement() {
-    double totalAmount = 0;
-    int frequentRenterPoints = 0;
-    String result = "Rental Record for " + getName() + "\n";
-    for (Rental each : rentals) {
-      double thisAmount = 0;
-      //determine amounts for each line
-      switch (each.getMovie().getPriceCode()) {
-        case Movie.REGULAR:
-          thisAmount += 2;
-          if (each.getDaysRented() > 2)
-            thisAmount += (each.getDaysRented() - 2) * 1.5;
-          break;
-        case Movie.NEW_RELEASE:
-          thisAmount += each.getDaysRented() * 3;
-          break;
-        case Movie.CHILDRENS:
-          thisAmount += 1.5;
-          if (each.getDaysRented() > 3)
-            thisAmount += (each.getDaysRented() - 3) * 1.5;
-          break;
-      }
-      // add frequent renter points
-      frequentRenterPoints++;
-      // add bonus for a two day new release rental
-      if ((each.getMovie().getPriceCode() == Movie.NEW_RELEASE)
-          &&
-          each.getDaysRented() > 1) frequentRenterPoints++;
+    return new TextStatement().display(rentals, this.getName());
+  }
 
+  public String htmlStatement(){
+    String result = "<h1>Rental Record for <b>" + getName() + "</b></h1><br/>";
+    double totalAmount =    rentals.totalAmount();
+    int totaFrequentRenterPoints = rentals.totaFrequentRenterPoints();
+
+    for (Rental each : rentals) {
       //show figures for this rental
       result += "\t" + each.getMovie().getTitle() + "\t" +
-          String.valueOf(thisAmount) + "\n";
-      totalAmount += thisAmount;
+              String.valueOf(each.amount()) + "<br/>";
     }
-
     //add footer lines result
-    result += "Amount owed is " + String.valueOf(totalAmount) + "\n";
-    result += "You earned " + String.valueOf(frequentRenterPoints)
-        + " frequent renter points";
+    result += "Amount owed is <b>" + String.valueOf(totalAmount) + "</b><br/>";
+    result += "You earned <b>" + String.valueOf(totaFrequentRenterPoints)
+            + "</b> frequent renter points";
     return result;
+  }
+
+  private class TextStatement {
+    public String display(Rentals rentals, String name) {
+      String result = "Rental Record for " + name + "\n";
+      for (Rental each : rentals) {
+        //show figures for this rental
+        result += "\t" + each.getMovie().getTitle() + "\t" +
+                String.valueOf(each.amount()) + "\n";
+      }
+      //add footer lines result
+      result += "Amount owed is " + String.valueOf(rentals.totalAmount()) + "\n";
+      result += "You earned " + String.valueOf(rentals.totaFrequentRenterPoints())
+          + " frequent renter points";
+      return result;
+    }
   }
 }
 
